@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>DroneLogServer</title>
+
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}"/>
+
+    <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+
+
+<div id="mapid" style="width: 100%; height: 100%;"></div>
+<script>
+
+    var mymap = L.map('mapid').setView([57.01313018035709, 9.991430319089478], 13);
+
+    L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 18,
+        attribution: '',
+    }).addTo(mymap);
+
+
+    $.get('/log', function (points) {
+        let latlngs = [];
+
+        for (let point of points) {
+            latlngs.push([point['lat'], point['lon']])
+        }
+
+        let polyline = L.polyline(latlngs, {color: 'red'}).addTo(mymap);
+        mymap.fitBounds(polyline.getBounds());
+    });
+
+</script>
+
+
+</body>
+</html>
