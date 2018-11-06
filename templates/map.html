@@ -27,15 +27,37 @@
     }).addTo(mymap);
 
 
-    $.get('/log', function (points) {
-        let latlngs = [];
+    function percentage(battery) {
+        let percentage = battery / 100;
 
-        for (let point of points) {
-            latlngs.push([point['lat'], point['lon']])
+        let g = percentage * 255;
+        let r = (1 - percentage) * 255;
+
+        return "rgb(" + r + " ," + g + ",0)";
+    }
+
+    $.get('/log', function (points) {
+        let polylines = L.featureGroup();
+
+        for (var i = 0; i < points.length - 1; i++) {
+            let point = points[i];
+            let next_point = points[i + 1];
+
+            let from = [point['lat'], point['lon']];
+            let to = [next_point['lat'], next_point['lon']];
+
+            let polyline = L.polyline(
+                [from, to],
+                {
+                    color: percentage(point['battery'])
+                }
+            );
+
+            polylines.addLayer(polyline);
         }
 
-        let polyline = L.polyline(latlngs, {color: 'red'}).addTo(mymap);
-        mymap.fitBounds(polyline.getBounds());
+        polylines.addTo(mymap);
+        mymap.fitBounds(polylines.getBounds());
     });
 
 </script>

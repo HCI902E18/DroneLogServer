@@ -11,10 +11,17 @@ def home():
     return render_template('map.html')
 
 
+def battery(level):
+    if level is None:
+        return 100
+    return level
+
+
 def log_map(data, idx, len_):
     return {
         'lat': data['position']['latitude'],
         'lon': data['position']['longitude'],
+        'battery': battery(data['batteryPercent'])
     }
 
 
