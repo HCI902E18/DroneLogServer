@@ -1,42 +1,45 @@
-import json
+import os
+from os import path
 
-from flask import Flask, render_template
-from flask.json import jsonify
+from flask import Flask, render_template, jsonify
+
+from LogFile import LogFile
+from LogFiles import LogFiles
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def home():
-    return render_template('map.html')
+    confirmed = [
+        '[21-11-2018][09.18.45]',
+        '[21-11-2018][09.18.40]',
+        '[21-11-2018][09.18.29]',
+    ]
+    folders = [folder for folder in LogFiles().folders() if folder in confirmed]
+
+    return render_template(
+        'map.html',
+        files=folders
+    )
 
 
-def battery(level):
-    if level is None:
-        return 100
-    return level
+@app.route('/log/<string:folder>')
+def log(folder):
+    file = LogFile(folder)
 
-
-def log_map(data, idx, len_):
-    return {
-        'lat': data['position']['latitude'],
-        'lon': data['position']['longitude'],
-        'battery': battery(data['batteryPercent'])
-    }
-
-
-def valid(data):
-    return data['position']['latitude'] is not None
-
-
-@app.route('/log')
-def log():
-    with open('logs/flight_log.json', 'r') as f:
-        points = json.loads(f.read())
-        return jsonify([log_map(point, idx, len(points)) for idx, point in enumerate(points) if valid(point)])
+    return jsonify(file.data())
 
 
 if __name__ == '__main__':
+    extra_dirs = ['./templates/', './static/', ]
+    extra_files = extra_dirs[:]
+    for extra_dir in extra_dirs:
+        for dirname, dirs, files in os.walk(extra_dir):
+            for filename in files:
+                filename = path.join(dirname, filename)
+                if path.isfile(filename):
+                    extra_files.append(filename)
     app.run(
         debug=True,
     )
